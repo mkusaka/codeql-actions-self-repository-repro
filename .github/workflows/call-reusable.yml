@@ -1,0 +1,12 @@
+# Calls two identical reusable workflows: one with the workspace-relative form (./)
+# and one with the self-repository form ($/).
+# Expected: no alerts in either reusable workflow, since the only caller is triggered by pull_request.
+name: call-reusable
+on:
+  pull_request:
+permissions: {}
+jobs:
+  dot:
+    uses: ./.github/workflows/reusable-dot.yml
+  self:
+    uses: $/.github/workflows/reusable-self.yml

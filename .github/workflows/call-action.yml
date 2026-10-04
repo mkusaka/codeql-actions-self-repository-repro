@@ -1,0 +1,23 @@
+# Calls two identical composite actions with attacker-controlled input under pull_request_target:
+# one with the workspace-relative form (./) and one with the self-repository form ($/).
+# Expected: a code injection alert in BOTH actions.
+#
+# This workflow is disabled in the repository settings so that it never runs;
+# it exists only to be analyzed by CodeQL.
+name: call-action
+on:
+  pull_request_target:
+permissions: {}
+jobs:
+  echo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/echo-dot
+        with:
+          text: ${{ github.event.pull_request.title }}
+      - uses: $/.github/actions/echo-self
+        with:
+          text: ${{ github.event.pull_request.title }}

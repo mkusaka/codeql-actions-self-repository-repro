@@ -1,0 +1,14 @@
+# Composite action called with the "$/" form from call-action.yml.
+# echo-dot and echo-self are identical apart from the first comment line and the name.
+name: echo-self
+description: Echoes the given text. Intentionally interpolates the input into a shell script.
+inputs:
+  text:
+    description: Text to echo
+    required: true
+runs:
+  using: composite
+  steps:
+    # Code injection sink: the input is expanded into the script before the shell runs.
+    - run: echo "${{ inputs.text }}"
+      shell: bash

@@ -1,0 +1,14 @@
+# Reusable workflow called with the "$/" form from call-reusable.yml.
+# reusable-dot.yml and reusable-self.yml are identical apart from the first comment line and the name.
+name: reusable-self
+on:
+  workflow_call:
+permissions: {}
+jobs:
+  echo:
+    runs-on: ubuntu-latest
+    steps:
+      # The only caller is triggered by pull_request, so these expressions are not attacker-controlled
+      # in a privileged context.
+      - run: echo "${{ github.event_name }}"
+      - run: echo "${{ github.head_ref }}"
