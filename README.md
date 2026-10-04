@@ -27,13 +27,15 @@ So:
 
 ## Cause
 
-In `actions/ql/lib/codeql/actions/ast/internal/Ast.qll` (`github/codeql` main):
+In `github/codeql` at [`7d04932`](https://github.com/github/codeql/tree/7d04932ce03b907a4865daa2e633778f5650dc20):
 
-- A call is matched to a callable by name: `viableCallable(DataFlowCall c) { c.getName() = result.getName() }` (`DataFlowPrivate.qll`).
-- The callable's name comes from `getResolvedPath()` of `ReusableWorkflowImpl` / `CompositeActionImpl`, which only produces `""` and `"./"` prefixed paths.
-- The call's name comes from `getCallee()`. For steps it is the raw `uses:` value without `@ref`, and for jobs it only strips a leading `./` (`u.getValue().matches("./%")`).
+- A call is matched to a callable by exact name: [`viableCallable(DataFlowCall c) { c.getName() = result.getName() }`](https://github.com/github/codeql/blob/7d04932ce03b907a4865daa2e633778f5650dc20/actions/ql/lib/codeql/actions/dataflow/internal/DataFlowPrivate.qll#L122).
+- The callable's name is [`getResolvedPath()`](https://github.com/github/codeql/blob/7d04932ce03b907a4865daa2e633778f5650dc20/actions/ql/lib/codeql/actions/dataflow/internal/DataFlowPrivate.qll#L98-L101) of [`CompositeActionImpl`](https://github.com/github/codeql/blob/7d04932ce03b907a4865daa2e633778f5650dc20/actions/ql/lib/codeql/actions/ast/internal/Ast.qll#L418-L425) / [`ReusableWorkflowImpl`](https://github.com/github/codeql/blob/7d04932ce03b907a4865daa2e633778f5650dc20/actions/ql/lib/codeql/actions/ast/internal/Ast.qll#L545-L552), which only produces paths prefixed with `""` or `"./"`.
+- The call's name is `getCallee()`:
+  - For steps ([`UsesStepImpl`](https://github.com/github/codeql/blob/7d04932ce03b907a4865daa2e633778f5650dc20/actions/ql/lib/codeql/actions/ast/internal/Ast.qll#L1371-L1375)), it is the raw `uses:` value without `@ref`, so `$/.github/actions/echo-self` stays as is.
+  - For jobs ([`ExternalJobImpl`](https://github.com/github/codeql/blob/7d04932ce03b907a4865daa2e633778f5650dc20/actions/ql/lib/codeql/actions/ast/internal/Ast.qll#L1402-L1410)), only values matching `./%` are parsed as local paths. Other values go through `([^/]+)/([^/]+)/([^@]+)@(.+)`, which `$/.github/workflows/reusable-self.yml` does not match, so there is no callee at all.
 
-A `$/...` callee therefore never equals any resolved path.
+A `$/...` callee therefore never matches a resolved path. A reusable workflow with no resolved caller is treated as privileged ([`not exists(...getACaller())`](https://github.com/github/codeql/blob/7d04932ce03b907a4865daa2e633778f5650dc20/actions/ql/lib/codeql/actions/ast/internal/Ast.qll#L856-L867)).
 
 ## Alerts
 
